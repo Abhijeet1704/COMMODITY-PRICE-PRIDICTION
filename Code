@@ -1,0 +1,116 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load dataset
+df = pd.read_csv('/content/commodity_futures.csv')
+df['Date'] = pd.to_datetime(df['Date'])
+df.set_index('Date', inplace=True)
+df_cleaned = df.fillna(method='ffill')
+
+# Time Series Plot of Gold
+plt.figure(figsize=(8, 3))
+plt.plot(df['GOLD'], label='Gold Price')
+plt.title('Gold Price Over Time')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.tight_layout()
+plt.savefig('gold_price.png')
+
+# Correlation Histogram
+correlation_matrix = df.corr()
+correlation_values = correlation_matrix.unstack().sort_values(ascending=False)
+correlation_values = correlation_values[correlation_values != 1]
+plt.figure(figsize=(6, 5))
+plt.hist(correlation_values, bins=30, color='skyblue', edgecolor='black')
+plt.title('Correlation Histogram')
+plt.xlabel('Correlation Value')
+plt.ylabel('Frequency')
+plt.tight_layout()
+plt.show()
+
+# WTI Crude Oil and 30-day Moving Average
+df['WTI_MA_30'] = df['WTI CRUDE'].rolling(window=30).mean()
+plt.figure(figsize=(10, 4))
+plt.plot(df['WTI CRUDE'], label='WTI Crude')
+plt.plot(df['WTI_MA_30'], label='30-day MA')
+plt.title('WTI Crude Oil and 30-day Moving Average')
+plt.legend()
+plt.tight_layout()
+plt.savefig('wti_ma.png')
+
+# Gold vs Silver Price Comparison
+gold_price = df['GOLD'].iloc[-1]
+silver_price = df['SILVER'].iloc[-1]
+labels = ['Gold', 'Silver']
+sizes = [gold_price, silver_price]
+colors = ['gold', 'silver']
+plt.figure(figsize=(4,4))
+plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
+plt.title('Gold vs Silver Price Comparison')
+plt.axis('equal')
+plt.tight_layout()
+plt.show()
+
+#Natural Gas 30-day Rolling Volatility Histogram
+
+volatility = df['NATURAL GAS'].rolling(window=30).std()
+plt.figure(figsize=(10, 4))
+plt.hist(volatility.dropna(), bins=30, color='skyblue', edgecolor='black')
+plt.title('Natural Gas 30-day Rolling Volatility Histogram')
+plt.xlabel('Volatility')
+plt.ylabel('Frequency')
+plt.tight_layout()
+plt.show()
+
+#Volatility Categories in Natural Gas
+
+volatility = df['NATURAL GAS'].rolling(window=30).std()
+volatility_mean = volatility.mean()
+volatility_std = volatility.std()
+low_volatility = volatility[volatility < (volatility_mean - volatility_std)].count()
+medium_volatility = volatility[(volatility >= (volatility_mean - volatility_std)) & (volatility <= (volatility_mean + volatility_std))].count()
+high_volatility = volatility[volatility > (volatility_mean + volatility_std)].count()
+labels = ['Low Volatility', 'Medium Volatility', 'High Volatility']
+sizes = [low_volatility, medium_volatility, high_volatility]
+colors = ['#66b3ff', '#99ff99', '#ff6666']
+plt.figure(figsize=(5, 5))
+plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
+plt.title('Volatility Categories in Natural Gas')
+plt.axis('equal')
+plt.tight_layout()
+plt.show()
+
+#Bar Chart - Average Prices of Top Commodities
+
+avg_prices = df.mean().sort_values(ascending=False)[:10]
+plt.figure(figsize=(12, 6))
+avg_prices.plot(kind='bar', color=sns.color_palette('viridis', 10))
+plt.title('Average Prices of Top 10 Commodities')
+plt.ylabel('Average Price')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+#Area Chart - Industrial Metals Comparison
+metals = ['COPPER', 'ALUMINIUM', 'NICKEL', 'ZINC']
+plt.figure(figsize=(12, 6))
+df[metals].plot(kind='area', alpha=0.5)
+plt.title('Industrial Metals Price Comparison')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend(loc='upper left')
+plt.show()
+
+#Rolling Correlation (60 days) between Gold and Silver
+plt.figure(figsize=(12, 6))
+df['GOLD'].rolling(30).std().plot(label='Gold')
+df['WTI CRUDE'].rolling(30).std().plot(label='WTI Crude')
+plt.title('30-Day Rolling Volatility')
+plt.xlabel('Date')
+plt.ylabel('Volatility')
+plt.legend()
+plt.grid(True)
+plt.show()
